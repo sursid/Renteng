@@ -43,6 +43,13 @@ Karena proyek ini mengandalkan komunikasi dua arah, untuk mendemokan alur secara
 
 Pastikan Anda memiliki [Bun](https://bun.sh/) dan [Node.js](https://nodejs.org/) terinstal.
 
+### Menggunakan Database Lokal (Opsional untuk Juri)
+Jika Anda ingin menjalankan database secara lokal alih-alih menggunakan server *cloud* yang kami sediakan, kami telah menyertakan *dump* database lengkap beserta datanya di folder `BackEnd/kopdes_renteng.sql`.
+Untuk mengimpornya dengan mudah:
+- **Windows:** Klik dua kali atau jalankan `import_db.bat` di dalam folder `BackEnd/`
+- **Mac/Linux:** Buka terminal, jalankan `chmod +x import_db.sh` lalu `./import_db.sh`
+Setelah itu, sesuaikan `DATABASE_URL` di file `.env` ke MySQL lokal Anda.
+
 ### Menjalankan BackEnd (API & WhatsApp Bot)
 ```bash
 cd BackEnd
