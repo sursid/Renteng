@@ -166,4 +166,91 @@ export const dashboardStatsController = new Elysia()
         perputaranUang: t.Number(),
       })
     )
+  })
+  .get("/permodalan", async ({ query }) => {
+    let dateFilter = {};
+    if (query.date) {
+      const parsedDate = new Date(query.date as string);
+      parsedDate.setHours(23, 59, 59, 999);
+      dateFilter = { createdAt: { lte: parsedDate } };
+    }
+
+    const pinjamanRaw = await prisma.pinjaman.findMany({
+      where: dateFilter,
+      include: {
+        anggota: {
+          include: {
+            kelompok: {
+              include: {
+                anggota: true
+              }
+            }
+          }
+        },
+        votingRenteng: true
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    const data = pinjamanRaw.map((p: any) => {
+      const kelompok = p.anggota?.kelompok;
+      const totalGroupMembers = kelompok?.anggota?.length || 1;
+      
+      const setujuCount = p.votingRenteng.filter((v: any) => v.status === 'setuju').length;
+      const tolakCount = p.votingRenteng.filter((v: any) => v.status === 'tolak').length;
+      const progress = Math.round((setujuCount / totalGroupMembers) * 100);
+
+      return {
+        id: `L${p.id.toString().padStart(3, '0')}`,
+        name: p.anggota?.nama || 'Unknown',
+        phone: p.anggota?.noWhatsapp || '-',
+        amount: Number(p.jumlah),
+        type: p.skema || 'yarnen',
+        tenure: 6,
+        status: p.status === 'pending' ? 'Menunggu' : (p.status === 'disetujui' ? 'Disetujui' : 'Ditolak'),
+        date: p.createdAt.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
+        purpose: p.tujuan || 'Modal Usaha',
+        quorum: {
+          setuju: setujuCount,
+          total: totalGroupMembers,
+          progress: progress
+        }
+      };
+    });
+
+    return { data };
+  })
+  .get("/komoditas", async () => {
+    const produks = await prisma.produk.findMany({
+      take: 10,
+      orderBy: { updatedAt: 'desc' }
+    });
+
+    const prices = produks.map((p: any) => ({
+      id: p.id.toString(),
+      item: p.namaProduk,
+      price: Number(p.nilaiTransaksi) || 0,
+      change: "+0.0%",
+      trend: "stable",
+      info: `Volume: ${p.volume}kg`
+    }));
+
+    return { prices };
+  })
+  .post("/komoditas", async ({ body, set }: any) => {
+    try {
+      const { id, price } = body;
+      if (!id || price === undefined) {
+        set.status = 400;
+        return { error: "ID Komoditas dan harga wajib ditentukan" };
+      }
+      const updated = await prisma.produk.update({
+        where: { id: Number(id) },
+        data: { nilaiTransaksi: price }
+      });
+      return { success: true, updatedItem: updated };
+    } catch (e: any) {
+      set.status = 500;
+      return { error: e.message };
+    }
   });

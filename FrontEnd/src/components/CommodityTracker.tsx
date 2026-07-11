@@ -26,7 +26,7 @@ export default function CommodityTracker({ refreshTrigger }: { refreshTrigger?: 
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/commodity-prices`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard/komoditas`);
       if (!response.ok) {
         throw new Error('Gagal memuat data harga komoditas terbaru');
       }

@@ -627,7 +627,7 @@ export default function AdminDashboard({ onBack, onRefreshPublicPrices, initialT
 
   const handleSaveCommodityPrice = async (id: string) => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/commodity-prices`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard/komoditas`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
