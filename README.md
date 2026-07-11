@@ -51,12 +51,16 @@ Untuk mengimpornya dengan mudah:
 Setelah itu, sesuaikan `DATABASE_URL` di file `.env` ke MySQL lokal Anda.
 
 ### Menjalankan BackEnd (API & WhatsApp Bot)
+*(Catatan Juri: File `.env` yang berisi kredensial Database PostgreSQL Cloud sudah kami sertakan langsung di dalam repositori ini agar Anda dapat langsung melakukan pengetesan tanpa perlu setup konfigurasi manual.)*
+
 ```bash
 cd BackEnd
 bun install
 bun run index.ts
 ```
-*Catatan: Saat pertama kali dijalankan, sistem akan menampilkan QR Code di terminal. Buka link yang diberikan untuk menghubungkan akun WhatsApp bot.*
+*(Catatan: Proyek ini menggunakan [Bun](https://bun.sh/) sebagai runtime JavaScript modern yang sangat cepat. `bun run index.ts` akan menjalankan server API dan inisialisasi bot WhatsApp).*
+
+*Setelah perintah dijalankan, sistem akan menampilkan QR Code di terminal. Buka link yang diberikan untuk menghubungkan akun WhatsApp bot.*
 
 ### Menjalankan FrontEnd (Dashboard Web)
 Buka terminal baru, lalu jalankan:
