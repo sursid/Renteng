@@ -32,6 +32,11 @@ Dashboard interaktif berbasis web untuk **Pengurus Koperasi Desa**.
 2. **Database Terpusat**: Keduanya berbagi database PostgreSQL yang sama untuk menjaga integritas data (pesanan, stok, status keberangkatan).
 3. **Loop Komunikasi**: Balasan dari WhatsApp petani (misal: menyetujui tawaran atau mengonfirmasi barang telah dikirim) akan otomatis ditangkap Backend, dan statusnya diperbarui secara *live* di Frontend untuk dilihat oleh Pengurus Koperasi.
 
+## 🧪 Prasyarat Testing (Wajib Baca)
+Karena proyek ini mengandalkan komunikasi dua arah, untuk mendemokan alur secara penuh Anda membutuhkan **minimal 2 (dua) nomor WhatsApp yang berbeda**:
+1. **Akun 1 (Petani/Supplier):** Bertindak sebagai pencari pesanan yang akan menerima notifikasi blast dan membalas kesanggupan suplai.
+2. **Akun 2 (Admin SPPG):** Bertindak sebagai pihak Dapur SPPG yang akan menerima notifikasi dari bot saat penyedia (petani) telah ditemukan.
+
 ---
 
 ## 🛠️ Cara Menjalankan Proyek (Development)
