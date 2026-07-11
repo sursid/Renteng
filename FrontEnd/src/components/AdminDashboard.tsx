@@ -463,7 +463,7 @@ export default function AdminDashboard({ onBack, onRefreshPublicPrices, initialT
   const handleUpdateMemberStatus = async (id: string, currentStatus: string) => {
     const nextStatus = currentStatus === 'Aktif' ? 'suspend' : 'aktif';
     try {
-      const res = await fetch(`http://localhost:4444/anggota/${id}/status`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4444'}/anggota/${id}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: nextStatus })
@@ -491,7 +491,7 @@ export default function AdminDashboard({ onBack, onRefreshPublicPrices, initialT
 
   const handleApproveMember = async (id: string) => {
     try {
-      const res = await fetch(`http://localhost:4444/anggota/${id}/status`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4444'}/anggota/${id}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'aktif' })
@@ -521,7 +521,7 @@ export default function AdminDashboard({ onBack, onRefreshPublicPrices, initialT
   const handleUpdateLoanStatus = async (id: string, newStatus: 'Disetujui' | 'Ditolak') => {
     try {
       if (newStatus === 'Disetujui') {
-        const res = await fetch(`http://localhost:4444/pinjaman/${id}/approve`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4444'}/pinjaman/${id}/approve`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' }
         });
