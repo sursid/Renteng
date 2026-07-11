@@ -39,6 +39,13 @@ Karena proyek ini mengandalkan komunikasi dua arah, untuk mendemokan alur secara
 
 ---
 
+## 🔐 Kredensial Demo (Web Admin Dashboard)
+Untuk masuk ke Dashboard FrontEnd (setelah dijalankan), gunakan kredensial berikut:
+- **Email/Username**: `admin`
+- **Password**: `admin`
+
+---
+
 ## 🛠️ Cara Menjalankan Proyek (Development)
 
 Pastikan Anda memiliki [Bun](https://bun.sh/) dan [Node.js](https://nodejs.org/) terinstal.
