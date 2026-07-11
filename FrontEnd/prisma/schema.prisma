@@ -1,0 +1,572 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// 0. USER (Auth — pengurus / admin)
+// ============================================================
+model User {
+  id         Int      @id @default(autoincrement())
+  nama       String
+  email      String   @unique
+  password   String
+  role       String   @default("pengurus")
+  idKoperasi Int?
+  idSppg     Int?
+  idAnggota  Int?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  koperasi Koperasi? @relation(fields: [idKoperasi], references: [id], onDelete: Cascade)
+  sppg     Sppg?     @relation(fields: [idSppg], references: [id], onDelete: Cascade)
+  anggota  Anggota?  @relation(fields: [idAnggota], references: [id], onDelete: Cascade)
+
+  @@map("tb_user")
+}
+
+// ============================================================
+// 1. KOPERASI
+// ============================================================
+model Koperasi {
+  id                 Int     @id @default(autoincrement())
+  idDesa             String
+  namaKoperasi       String
+  tingkatModernisasi String?
+  saldoKas           Decimal @default(0)
+  status             String  @default("aktif")
+
+  // Field tambahan dari SIMKOPDES (Scraping Data)
+  nomorBadanHukum   String?
+  jenisKoperasi     String?
+  statusRat         String?
+  tahunBukuRat      Int?
+  skorKesehatan     Decimal?
+  predikatKesehatan String?
+
+  // Tambahan Makro & Legalitas
+  npwp                String?
+  nib                 String?
+  provinsi            String?
+  kabupatenKota       String?
+  statusLahan         String?
+  progressPembangunan Decimal?
+  erl                 Int      @default(1)
+  lat                 Decimal?
+  lng                 Decimal?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  idProvinsi  Int?
+  idKabupaten Int?
+
+  anggota      Anggota[]
+  sppgList     Sppg[]
+  users        User[]
+  kelompokTani KelompokTani[]
+  bukuKas      BukuKas[]
+  provinsiRef  Provinsi?  @relation(fields: [idProvinsi], references: [id], onDelete: SetNull)
+  kabupatenRef Kabupaten? @relation(fields: [idKabupaten], references: [id], onDelete: SetNull)
+
+  @@map("tb_koperasi")
+}
+
+// ============================================================
+// 2. SPPG (Dapur Makan Bergizi Gratis)
+// ============================================================
+model Sppg {
+  id              Int      @id @default(autoincrement())
+  idKoperasi      Int
+  namaSppg        String
+  alamat          String?
+  lat             Decimal?
+  lng             Decimal?
+  kapasitasHarian Int      @default(0)
+  status          String   @default("aktif")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  koperasi      Koperasi        @relation(fields: [idKoperasi], references: [id])
+  kebutuhanList KebutuhanSppg[]
+  users         User[]
+
+  @@map("tb_sppg")
+}
+
+// ============================================================
+// 3. ANGGOTA / WARGA DESA (Supplier)
+// ============================================================
+model Anggota {
+  id            Int      @id @default(autoincrement())
+  idKoperasi    Int
+  nama          String
+  noWhatsapp    String   @unique
+  kategoriUsaha String?
+  komoditas     String?
+  alamat        String?
+  lat           Decimal?
+  lng           Decimal?
+  saldo         Decimal  @default(0)
+  creditScore   Int      @default(0)
+  optInConsent  Boolean  @default(false)
+  gender        String?
+  sapaan        String?
+  status        String   @default("aktif")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  idKelompok    Int?
+  kelompok      KelompokTani?     @relation(fields: [idKelompok], references: [id])
+  koperasi       Koperasi          @relation(fields: [idKoperasi], references: [id])
+  produksiHarian ProduksiHarian[]
+  aiMatching     AiMatching[]
+  transaksi      Transaksi[]
+  tarikTunais    TarikTunai[]
+  pinjaman       Pinjaman[]
+  chatSessions   ChatSession[]
+  users          User[]
+  rekeningList   RekeningAnggota[]
+  votingRenteng  VotingRenteng[]
+
+  @@map("tb_anggota_warga")
+}
+
+// ============================================================
+// 3.1 KELOMPOK TANI (Untuk Tanggung Renteng)
+// ============================================================
+model KelompokTani {
+  id         Int       @id @default(autoincrement())
+  nama       String
+  idKoperasi Int
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  anggota    Anggota[]
+  koperasi   Koperasi  @relation(fields: [idKoperasi], references: [id])
+
+  @@map("tb_kelompok_tani")
+}
+
+// ============================================================
+// 3.2 VOTING RENTENG (Log Persetujuan via WA)
+// ============================================================
+model VotingRenteng {
+  id               Int      @id @default(autoincrement())
+  idPinjaman       Int
+  idAnggotaPemilih Int
+  status           String   @default("pending") // pending, setuju, tolak
+  pesanWa          String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  pinjaman Pinjaman @relation(fields: [idPinjaman], references: [id])
+  pemilih  Anggota  @relation(fields: [idAnggotaPemilih], references: [id])
+
+  @@map("tb_voting_renteng")
+}
+
+// ============================================================
+// 4. PRODUKSI HARIAN
+// ============================================================
+model ProduksiHarian {
+  id             Int      @id @default(autoincrement())
+  idAnggota      Int
+  tanggal        DateTime
+  jumlahProduksi Int
+  jumlahTersedia Int
+  satuan         String   @default("kg")
+  status         String   @default("tersedia")
+  createdAt      DateTime @default(now())
+
+  anggota Anggota @relation(fields: [idAnggota], references: [id])
+
+  @@map("tb_produksi_harian")
+}
+
+// ============================================================
+// 5. KEBUTUHAN SPPG
+// ============================================================
+model KebutuhanSppg {
+  id            Int      @id @default(autoincrement())
+  idSppg        Int
+  produk        String
+  jumlah        Int
+  satuan        String   @default("kg")
+  hargaMaksimal Decimal
+  status        String   @default("open")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  sppg       Sppg         @relation(fields: [idSppg], references: [id])
+  aiMatching AiMatching[]
+  transaksi  Transaksi[]
+
+  @@map("tb_kebutuhan_sppg")
+}
+
+// ============================================================
+// 5.1 TARIK TUNAI
+// ============================================================
+model TarikTunai {
+  id              Int      @id @default(autoincrement())
+  idAnggota       Int
+  jumlah          Decimal
+  metodePenarikan String   @default("CASH")
+  namaBankTarget  String?
+  norekTarget     String?
+  atasNamaTarget  String?
+  buktiTransfer   String?
+  status          String   @default("pending")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  anggota Anggota @relation(fields: [idAnggota], references: [id])
+
+  @@map("tb_tarik_tunai")
+}
+
+// ============================================================
+// 5.2 REKENING ANGOTA
+// ============================================================
+model RekeningAnggota {
+  id            Int      @id @default(autoincrement())
+  idAnggota     Int
+  namaBank      String
+  nomorRekening String
+  atasNama      String
+  isUtama       Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  anggota Anggota @relation(fields: [idAnggota], references: [id], onDelete: Cascade)
+
+  @@map("tb_rekening_anggota")
+}
+
+// ============================================================
+// 6. AI MATCHING
+// ============================================================
+model AiMatching {
+  id            Int      @id @default(autoincrement())
+  idOrder       Int
+  idAnggota     Int
+  score         Float    @default(0)
+  rekomendasiAi String?
+  confidence    Float    @default(0)
+  createdAt     DateTime @default(now())
+
+  kebutuhan AiBlastLog[]
+  anggota   Anggota       @relation(fields: [idAnggota], references: [id])
+  order     KebutuhanSppg @relation(fields: [idOrder], references: [id])
+
+  @@map("tb_ai_matching")
+}
+
+// ============================================================
+// 7. AI BLAST LOG
+// ============================================================
+model AiBlastLog {
+  id           Int       @id @default(autoincrement())
+  idMatching   Int
+  pesan        String
+  statusKirim  String    @default("pending")
+  respon       String?
+  respondedAt  DateTime? // Timestamp kapan petani/supplier balas
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  matching AiMatching         @relation(fields: [idMatching], references: [id])
+  approval ApprovalPengurus[]
+
+  @@map("tb_ai_blast_log")
+}
+
+// ============================================================
+// 8. APPROVAL PENGURUS
+// ============================================================
+model ApprovalPengurus {
+  id         Int      @id @default(autoincrement())
+  idBlast    Int
+  approvedBy String
+  status     String   @default("pending")
+  catatan    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  blast AiBlastLog @relation(fields: [idBlast], references: [id])
+
+  @@map("tb_approval_pengurus")
+}
+
+// ============================================================
+// 9. TRANSAKSI
+// ============================================================
+model Transaksi {
+  id               Int      @id @default(autoincrement())
+  idOrder          Int
+  idSupplier       Int
+  nilaiTransaksi   Decimal
+  serviceFee       Decimal
+  nilaiSupplier    Decimal
+  metodePembayaran String?
+  buktiTransaksi   String?
+  status           String   @default("pending")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  kebutuhan  KebutuhanSppg   @relation(fields: [idOrder], references: [id])
+  anggota    Anggota         @relation(fields: [idSupplier], references: [id])
+  aiLearning AiLearningLog[]
+
+  @@map("tb_transaksi")
+}
+
+// ============================================================
+// 10. AI LEARNING LOG
+// ============================================================
+model AiLearningLog {
+  id               Int      @id @default(autoincrement())
+  idTransaksi      Int
+  hasilRekomendasi String?
+  hasilAktual      String?
+  feedbackAi       String?
+  createdAt        DateTime @default(now())
+
+  transaksi Transaksi @relation(fields: [idTransaksi], references: [id])
+
+  @@map("tb_ai_learning_log")
+}
+
+// ============================================================
+// 11. STATISTIK NASIONAL (Agregat Makro)
+// ============================================================
+model StatistikNasional {
+  id                    Int      @id @default(autoincrement())
+  tahun                 Int      @unique
+  totalKoperasi         Int      @default(0)
+  koperasiPunyaAkun     Int      @default(0)
+  koperasiPunyaNpwp     Int      @default(0)
+  koperasiPunyaNib      Int      @default(0)
+  totalSimpananPokok    Decimal  @default(0)
+  totalSimpananWajib    Decimal  @default(0)
+  volumeTransaksi       Int      @default(0)
+  nilaiTransaksi        Decimal  @default(0)
+  totalLahanDiajukan    Int      @default(0)
+  lahanSedangVerifikasi Int      @default(0)
+  lahanDipertimbangkan  Int      @default(0)
+  geraiSelesai          Int      @default(0)
+  geraiDalamPembangunan Int      @default(0)
+  geraiBelumDibangun    Int      @default(0)
+  kendalaLp2b           Int      @default(0)
+  kendalaLahanKecil     Int      @default(0)
+  sudahLaporKeuangan    Int      @default(0)
+  belumLaporKeuangan    Int      @default(0)
+  totalPendapatan       Decimal  @default(0)
+  totalBeban            Decimal  @default(0)
+  totalAset             Decimal  @default(0)
+  totalLiabilitas       Decimal  @default(0)
+  totalEkuitas          Decimal  @default(0)
+  koperasiSehat         Int      @default(0)
+  koperasiCukupSehat    Int      @default(0)
+  koperasiTidakSehat    Int      @default(0)
+  ratDilaporkan         Int      @default(0)
+  ratDiverifikasiDinas  Int      @default(0)
+  ratSedangDraft        Int      @default(0)
+  ratBelum              Int      @default(0)
+  updatedAt             DateTime @updatedAt
+
+  provinsiList StatistikProvinsi[]
+
+  @@map("tb_statistik_nasional")
+}
+
+// ============================================================
+// 12. STATISTIK PROVINSI
+// ============================================================
+model StatistikProvinsi {
+  id                      Int      @id @default(autoincrement())
+  namaProvinsi            String
+  tahun                   Int
+  idProvinsi              Int?
+  jumlahKoperasi          Int      @default(0)
+  jumlahKelurahan         Int      @default(0)
+  jumlahDesa              Int      @default(0)
+  nilaiTransaksi          Decimal  @default(0)
+  progressPembangunan     Decimal  @default(0)
+  totalPendapatan         Decimal  @default(0)
+  koperasiRatDiverifikasi Int      @default(0)
+  koperasiBelumRat        Int      @default(0)
+  updatedAt               DateTime @updatedAt
+
+  kabupatenList   StatistikKabupaten[]
+  produkList      Produk[]
+  topKoperasiList TopKoperasi[]
+  idNasional      Int?
+  provinsiRef     Provinsi?            @relation(fields: [idProvinsi], references: [id], onDelete: SetNull)
+  nasional        StatistikNasional?   @relation(fields: [idNasional], references: [id], onDelete: SetNull)
+
+  @@unique([namaProvinsi, tahun])
+  @@map("tb_statistik_provinsi")
+}
+
+// ============================================================
+// 13. STATISTIK KABUPATEN
+// ============================================================
+model StatistikKabupaten {
+  id             Int      @id @default(autoincrement())
+  idProvinsi     Int
+  idKabupaten    Int?
+  namaKabupaten  String
+  nilaiTransaksi Decimal  @default(0)
+  updatedAt      DateTime @updatedAt
+
+  provinsi     StatistikProvinsi @relation(fields: [idProvinsi], references: [id])
+  kabupatenRef Kabupaten?        @relation(fields: [idKabupaten], references: [id], onDelete: SetNull)
+  produkList   Produk[]
+
+  @@map("tb_statistik_kabupaten")
+}
+
+// ============================================================
+// 14. TOP PRODUK
+// ============================================================
+model Produk {
+  id             Int                 @id @default(autoincrement())
+  namaProduk     String
+  volume         Int                 @default(0)
+  nilaiTransaksi Decimal             @default(0)
+  idProvinsi     Int?
+  provinsi       StatistikProvinsi?  @relation(fields: [idProvinsi], references: [id])
+  idKabupaten    Int?
+  kabupaten      StatistikKabupaten? @relation(fields: [idKabupaten], references: [id])
+  updatedAt      DateTime            @updatedAt
+
+  @@map("tb_produk")
+}
+
+// ============================================================
+// 15. TOP KOPERASI
+// ============================================================
+model TopKoperasi {
+  id             Int               @id @default(autoincrement())
+  namaKoperasi   String
+  namaKabupaten  String?
+  nilaiTransaksi Decimal           @default(0)
+  idProvinsi     Int
+  provinsi       StatistikProvinsi @relation(fields: [idProvinsi], references: [id])
+  updatedAt      DateTime          @updatedAt
+
+  @@map("tb_top_koperasi")
+}
+
+// ============================================================
+// 16. PINJAMAN
+// ============================================================
+model Pinjaman {
+  id        Int      @id @default(autoincrement())
+  idAnggota Int
+  jumlah    Decimal
+  tujuan    String?
+  skema     String?
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  anggota   Anggota  @relation(fields: [idAnggota], references: [id])
+  votingRenteng VotingRenteng[]
+
+  @@map("tb_pinjaman")
+}
+
+// ============================================================
+// 17. CHAT SESSION
+// ============================================================
+model ChatSession {
+  id        Int      @id @default(autoincrement())
+  idAnggota Int
+  pesan     String
+  balasanAi String
+  createdAt DateTime @default(now())
+  anggota   Anggota  @relation(fields: [idAnggota], references: [id])
+
+  @@map("tb_chat_session")
+}
+
+// ============================================================
+// 18. PROVINSI (Scraped Data)
+// ============================================================
+model Provinsi {
+  id               Int                 @id @default(autoincrement())
+  nama             String              @unique
+  jumlahKoperasi   Int                 @default(0)
+  nibCount         Int                 @default(0)
+  npwpCount        Int                 @default(0)
+  ratCount         Int                 @default(0)
+  simpananPokok    Decimal             @default(0)
+  simpananWajib    Decimal             @default(0)
+  volumeTransaksi  Int                 @default(0)
+  nilaiTransaksi   Decimal             @default(0)
+  pemetaanLahan    Decimal?
+  pembangunanGerai Decimal?
+  ratReported      Int                 @default(0)
+  ratVerified      Int                 @default(0)
+  ratDraft         Int                 @default(0)
+  ratNone          Int                 @default(0)
+  kabupatens       Kabupaten[]
+  koperasis        Koperasi[]
+  statistikList    StatistikProvinsi[]
+
+  @@map("tb_provinsi")
+}
+
+// ============================================================
+// 19. KABUPATEN (Scraped Data)
+// ============================================================
+model Kabupaten {
+  id              Int                  @id @default(autoincrement())
+  idProvinsi      Int
+  nama            String
+  kelurahan       Int                  @default(0)
+  desa            Int                  @default(0)
+  totalKopdes     Int                  @default(0)
+  jumlahKoperasi  Int                  @default(0)
+  nibCount        Int                  @default(0)
+  npwpCount       Int                  @default(0)
+  ratCount        Int                  @default(0)
+  simpananPokok   Decimal              @default(0)
+  simpananWajib   Decimal              @default(0)
+  volumeTransaksi Int                  @default(0)
+  nilaiTransaksi  Decimal              @default(0)
+  ratReported     Int                  @default(0)
+  ratVerified     Int                  @default(0)
+  ratDraft        Int                  @default(0)
+  ratNone         Int                  @default(0)
+  provinsi        Provinsi             @relation(fields: [idProvinsi], references: [id], onDelete: Cascade)
+  koperasis       Koperasi[]
+  statistikList   StatistikKabupaten[]
+
+  @@map("tb_kabupaten")
+}
+
+// ============================================================
+// 20. BUKU KAS (Mutasi Kas Koperasi)
+// ============================================================
+model BukuKas {
+  id              Int      @id @default(autoincrement())
+  idKoperasi      Int
+  tanggal         DateTime @default(now())
+  uraian          String
+  transaksiRef    String?
+  tipeMutasi      String   @default("masuk") // masuk, keluar
+  nominal         Decimal
+  saldoSetelahnya Decimal
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  koperasi Koperasi @relation(fields: [idKoperasi], references: [id])
+
+  @@map("tb_buku_kas")
+}
