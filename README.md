@@ -56,9 +56,10 @@ Setelah itu, sesuaikan `DATABASE_URL` di file `.env` ke MySQL lokal Anda.
 ```bash
 cd BackEnd
 bun install
+bunx prisma generate
 bun run index.ts
 ```
-*(Catatan: Proyek ini menggunakan [Bun](https://bun.sh/) sebagai runtime JavaScript modern yang sangat cepat. `bun run index.ts` akan menjalankan server API dan inisialisasi bot WhatsApp).*
+*(Catatan: Proyek ini menggunakan [Bun](https://bun.sh/) sebagai runtime JavaScript modern yang sangat cepat. Perintah `bunx prisma generate` digunakan untuk menghasilkan Prisma Client dari skema database, dan `bun run index.ts` akan menjalankan server API dan inisialisasi bot WhatsApp).*
 
 *Setelah perintah dijalankan, sistem akan menampilkan QR Code di terminal. Buka link yang diberikan untuk menghubungkan akun WhatsApp bot.*
 
