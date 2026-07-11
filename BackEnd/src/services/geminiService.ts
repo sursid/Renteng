@@ -11,7 +11,12 @@ export async function askGemini(prompt: string): Promise<string | null> {
   let keys: string[] = [];
   try {
     const data = await fs.readFile(keysPath, "utf-8");
-    keys = JSON.parse(data);
+    const rawData = JSON.parse(data);
+    keys = rawData.map((item: any) => {
+      if (typeof item === 'string') return item.trim();
+      if (item && item.p1 && item.p2) return (item.p1 + item.p2).trim();
+      return "";
+    });
   } catch (err) {
     console.error("❌ Gagal membaca gemini_keys.json!", err);
     return null;
@@ -38,7 +43,7 @@ export async function askGemini(prompt: string): Promise<string | null> {
   ];
 
   for (let i = 0; i < validKeys.length; i++) {
-    const apiKey = validKeys[i];
+    const apiKey = validKeys[i].trim();
     console.log(`🔑 Menggunakan API Key #${i + 1}...`);
     
     for (let j = 0; j < geminiModels.length; j++) {
