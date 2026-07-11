@@ -292,8 +292,8 @@ export default function AdminDashboard({ onBack, onRefreshPublicPrices, initialT
         fetch(`${process.env.NEXT_PUBLIC_API_URL}/anggota${dateQuery}`),
         fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard/permodalan${dateQuery}`).catch(() => ({ ok: true, json: () => ({}) } as any)),
         fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard/komoditas${dateQuery}`).catch(() => ({ ok: true, json: () => ({}) } as any)),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard/approvals${dateQuery}`).catch(() => ({ ok: true, json: () => ({}) } as any)),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard/kas${dateQuery}`).catch(() => ({ ok: true, json: () => ({}) } as any)),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/approval${dateQuery}`).catch(() => ({ ok: true, json: () => ({}) } as any)),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/kas${dateQuery}`).catch(() => ({ ok: true, json: () => ({}) } as any)),
         fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard/blast-logs${dateQuery}`).catch(() => ({ ok: true, json: () => ({}) } as any))
       ]);
 
@@ -551,7 +551,7 @@ export default function AdminDashboard({ onBack, onRefreshPublicPrices, initialT
     }
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard/approvals`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/approval`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
