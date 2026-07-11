@@ -72,11 +72,23 @@ bun run index.ts
 
 ### Menjalankan FrontEnd (Dashboard Web)
 Buka terminal baru, lalu jalankan:
+
+**A. Mode Development (Rekomendasi untuk Uji Coba Cepat)**
 ```bash
 cd FrontEnd
 npm install
 npm run dev
 ```
+
+**B. Mode Production (Lebih Cepat & Optimal)**
+Jika Anda ingin melihat performa aslinya dalam mode produksi:
+```bash
+cd FrontEnd
+npm install
+npm run build
+npm run start
+```
+
 *Akses dashboard di `http://localhost:3000/admin`.*
 
 ---
