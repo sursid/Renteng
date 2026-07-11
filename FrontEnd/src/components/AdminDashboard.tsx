@@ -255,7 +255,7 @@ export default function AdminDashboard({ onBack, onRefreshPublicPrices, initialT
     }
 
     try {
-      await fetch('/api/dashboard/kotak-kuning', {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard/kotak-kuning`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'approve_supply', id })
@@ -272,7 +272,7 @@ export default function AdminDashboard({ onBack, onRefreshPublicPrices, initialT
     triggerNotification('error', 'Rekomendasi suplai ditolak.');
     
     try {
-      await fetch('/api/dashboard/kotak-kuning', {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard/kotak-kuning`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'reject_supply', id })
@@ -289,12 +289,12 @@ export default function AdminDashboard({ onBack, onRefreshPublicPrices, initialT
     try {
       const dateQuery = globalDate ? `?date=${format(globalDate, 'yyyy-MM-dd')}` : '';
       const [membersRes, loansRes, commoditiesRes, matchingRes, kasRes, blastRes] = await Promise.all([
-        fetch(`/api/anggota${dateQuery}`),
-        fetch(`/api/dashboard/permodalan${dateQuery}`).catch(() => ({ ok: true, json: () => ({}) } as any)),
-        fetch(`/api/dashboard/komoditas${dateQuery}`).catch(() => ({ ok: true, json: () => ({}) } as any)),
-        fetch(`/api/dashboard/approvals${dateQuery}`).catch(() => ({ ok: true, json: () => ({}) } as any)),
-        fetch(`/api/dashboard/kas${dateQuery}`).catch(() => ({ ok: true, json: () => ({}) } as any)),
-        fetch(`/api/dashboard/blast-logs${dateQuery}`).catch(() => ({ ok: true, json: () => ({}) } as any))
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/anggota${dateQuery}`),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard/permodalan${dateQuery}`).catch(() => ({ ok: true, json: () => ({}) } as any)),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard/komoditas${dateQuery}`).catch(() => ({ ok: true, json: () => ({}) } as any)),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard/approvals${dateQuery}`).catch(() => ({ ok: true, json: () => ({}) } as any)),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard/kas${dateQuery}`).catch(() => ({ ok: true, json: () => ({}) } as any)),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard/blast-logs${dateQuery}`).catch(() => ({ ok: true, json: () => ({}) } as any))
       ]);
 
       if (!membersRes.ok) {
@@ -311,7 +311,7 @@ export default function AdminDashboard({ onBack, onRefreshPublicPrices, initialT
       const blastData = await blastRes.json().catch(() => ({}));
 
       try {
-        const kkRes = await fetch(`/api/dashboard/kotak-kuning${dateQuery}`);
+        const kkRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard/kotak-kuning${dateQuery}`);
         if (kkRes.ok) {
           const kkData = await kkRes.json();
           if (kkData?.data?.activeDemands?.length > 0) {
@@ -360,7 +360,7 @@ export default function AdminDashboard({ onBack, onRefreshPublicPrices, initialT
       }
 
       try {
-        const statsRes = await fetch(`/api/dashboard/stats${dateQuery}`);
+        const statsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard/stats${dateQuery}`);
         if (statsRes.ok) {
           const statsData = await statsRes.json();
           if (statsData?.saldoKasKud) {
@@ -551,7 +551,7 @@ export default function AdminDashboard({ onBack, onRefreshPublicPrices, initialT
     }
 
     try {
-      const res = await fetch('/api/dashboard/approvals', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard/approvals`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -578,7 +578,7 @@ export default function AdminDashboard({ onBack, onRefreshPublicPrices, initialT
       // Process queue sequentially
       for (const task of syncQueue) {
         if (task.action === 'approve') {
-          await fetch('/api/matching', {
+          await fetch(`${process.env.NEXT_PUBLIC_API_URL}/matching`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -627,7 +627,7 @@ export default function AdminDashboard({ onBack, onRefreshPublicPrices, initialT
 
   const handleSaveCommodityPrice = async (id: string) => {
     try {
-      const res = await fetch('/api/commodity-prices', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/commodity-prices`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
